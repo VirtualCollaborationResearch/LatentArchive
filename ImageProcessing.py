@@ -31,19 +31,13 @@ def plot_histogram(img,title, bins = 100):
 # List of transforms to be applied
 
 # %%
-rgb_transform = transforms.Compose([
-                                    transforms.ToTensor(),
+def rgb_transform(img):
+    """Function that takes a tensor and returns it in gray scale and with additive noise"""
+    transform = transforms.Compose([
+                                    #transforms.ToTensor(),
                                     transforms.Grayscale(num_output_channels=1),
                                     #transforms.Normalize((0.5), (0.5)), #May not be required after histogram matching
                                     AddGaussianNoise(mean=0.0, std=0.1)])
-
-# %% [markdown]
-# Testing transforms
-
-# %%
-test_image = cv.imread('Sequence037.0422.exr', cv.IMREAD_REDUCED_COLOR_2 + cv.IMREAD_ANYDEPTH)
-test_image = rgb_transform(test_image)
-print(test_image.shape)
-plt.imshow(np.transpose(test_image.numpy(), (1, 2, 0)), cmap='gray')
-
-
+    img = img.transpose(0,2).transpose(1,2)
+    img = transform(img)
+    return img
