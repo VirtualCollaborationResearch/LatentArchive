@@ -6,6 +6,7 @@ import cv2 as cv
 import matplotlib.pyplot as plt
 from skimage import exposure
 from skimage.exposure import match_histograms
+import os
 
 # %%
 class AddGaussianNoise:
@@ -41,3 +42,14 @@ def rgb_transform(img):
     img = img.transpose(0,2).transpose(1,2)
     img = transform(img)
     return img
+
+def histogram_matching(img, ref_dir):
+    """Function that matches histogram of a given image with all images in a given directory"""
+    img = img.numpy()
+    for ref in os.listdir(ref_dir):
+        ref_path = ref_dir + '/' + ref
+        ref_img = cv.imread(ref_path, cv.IMREAD_ANYDEPTH + cv.IMREAD_GRAYSCALE)
+        ref_img = ref_img.reshape(ref_img.shape[0],ref_img.shape[1],1)
+        img = match_histograms(img, ref_img, multichannel=False)
+    return img
+
