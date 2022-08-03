@@ -46,7 +46,8 @@ def rgb_transform(img):
 def histogram_matching(img, ref_dir):
     """Function that matches histogram of a given image with all images in a given directory"""
     img = img.numpy()
-    for ref in os.listdir(ref_dir):
+    random_images = np.random.choice(os.listdir(ref_dir), size=5)
+    for ref in random_images:
         ref_path = ref_dir + '/' + ref
         ref_img = cv.imread(ref_path, cv.IMREAD_ANYDEPTH + cv.IMREAD_GRAYSCALE)
         ref_img = ref_img.reshape(ref_img.shape[0],ref_img.shape[1],1)
