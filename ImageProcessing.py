@@ -37,6 +37,8 @@ def rgb_transform(img):
     transform = transforms.Compose([
                                     #transforms.ToTensor(),
                                     transforms.Grayscale(num_output_channels=1),
+                                    transforms.GaussianBlur(kernel_size=(7,13), sigma=(2, 4)),
+                                    #transforms.RandomSolarize(threshold= 200, p=0.3),
                                     #transforms.Normalize((0.5), (0.5)), #May not be required after histogram matching
                                     AddGaussianNoise(mean=0.0, std=0.1)])
     img = img.transpose(0,2).transpose(1,2)
