@@ -3,9 +3,10 @@ import pandas as pd
 import cv2 as cv
 from torch.utils.data import Dataset
 import numpy as np
-from transformers import AutoFeatureExtractor
+from transformers import DPTFeatureExtractor
+import torch
 
-extractor = AutoFeatureExtractor.from_pretrained("Intel/dpt-large")
+extractor = DPTFeatureExtractor.from_pretrained("Intel/dpt-large")
 
 class CustomImageDataset(Dataset):
     def __init__(self, img, depth, transform=None, histogram_matching=None):
@@ -25,6 +26,7 @@ class CustomImageDataset(Dataset):
             image = self.histogram_matching(image)
 
         item = extractor(images=image, return_tensors="pt")
+        item['pixel_values'] = item["pixel_values"].squeeze(0)
 
         item['labels'] =  self.depth[idx]
         return item
