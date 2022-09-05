@@ -1,10 +1,5 @@
-import os
-import pandas as pd
-import cv2 as cv
 from torch.utils.data import Dataset
-import numpy as np
 from transformers import DPTFeatureExtractor
-import torch
 
 extractor = DPTFeatureExtractor.from_pretrained("Intel/dpt-large")
 

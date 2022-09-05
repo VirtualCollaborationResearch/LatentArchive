@@ -1,12 +1,9 @@
 # %%
 import numpy as np
-from sympy import print_gtk
 import torch
 import torchvision.transforms as transforms
 import cv2 as cv
 import matplotlib.pyplot as plt
-from skimage import exposure
-from PIL import Image
 from skimage.exposure import match_histograms
 import os
 
@@ -38,7 +35,7 @@ def rgb_transform(img):
     """Function that takes a tensor and returns it in gray scale and with additive noise"""
     transform = transforms.Compose([
                                     transforms.ToTensor(),
-                                    transforms.Grayscale(num_output_channels=3),
+                                    transforms.Grayscale(num_output_channels=1),
                                     transforms.GaussianBlur(kernel_size=(7,13), sigma=(2, 4)),
                                     #transforms.RandomSolarize(threshold= 200, p=0.3),
                                     #transforms.Normalize((0.5), (0.5)), #May not be required after histogram matching
@@ -57,8 +54,8 @@ def histogram_matching(img, ref_dir='./Manhatta Frames/'):
         ref_path = ref_dir + '/' + ref
         ref_img = cv.imread(ref_path, cv.IMREAD_ANYDEPTH + cv.IMREAD_GRAYSCALE)
         ref_img = ref_img.reshape(ref_img.shape[0],ref_img.shape[1],1)
-        img = match_histograms(img, ref_img, multichannel=False)
-    img = torch.from_numpy(img)
+        img = match_histograms(img, ref_img)
+    #img = torch.from_numpy(img)
     #img = Image.fromarray(img)
     return img
 
