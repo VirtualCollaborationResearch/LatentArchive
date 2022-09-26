@@ -1,7 +1,7 @@
 from torch.utils.data import Dataset
-from transformers import DPTFeatureExtractor
+#from transformers import DPTFeatureExtractor
 
-extractor = DPTFeatureExtractor.from_pretrained("Intel/dpt-large")
+#extractor = DPTFeatureExtractor.from_pretrained("Intel/dpt-large")
 
 class CustomImageDataset(Dataset):
     def __init__(self, img, depth, transform=None, histogram_matching=None):
@@ -20,8 +20,8 @@ class CustomImageDataset(Dataset):
         if self.histogram_matching:
             image = self.histogram_matching(image)
 
-        item = extractor(images=image, return_tensors="pt")
-        item['pixel_values'] = item["pixel_values"].squeeze(0)
+        #item = extractor(images=image, return_tensors="pt")
+        #item['pixel_values'] = item["pixel_values"].squeeze(0)
 
-        item['labels'] =  self.depth[idx]
-        return item
+        #item['labels#'] =  self.depth[idx]
+        #return item#
