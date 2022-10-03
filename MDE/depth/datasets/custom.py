@@ -178,8 +178,106 @@ class CustomDepthDataset(Dataset):
         return results
 
     # design your own evaluation pipeline
+    def get_gt_depth_maps(self):
+        """Get ground truth depth maps for evaluation."""
+
+        for img_info in self.img_infos:
+            depth_map = img_info['ann']['depth_map']
+            depth_map_gt = np.asarray(Image.open(depth_map), dtype=np.float32) / self.depth_scale
+            yield depth_map_gt
+
+    def eval_mask(self, depth_gt):
+        depth_gt = np.squeeze(depth_gt)
+        valid_mask = np.logical_and(depth_gt > self.min_depth, depth_gt < self.max_depth)
+        valid_mask = np.expand_dims(valid_mask, axis=0)
+        return valid_mask
+
     def pre_eval(self, preds, indices):
-        pass
+        """Collect eval result from each iteration.
+        Args:
+            preds (list[torch.Tensor] | torch.Tensor): the depth estimation, shape (N, H, W).
+            indices (list[int] | int): the prediction related ground truth
+                indices.
+        Returns:
+            list[torch.Tensor]: (area_intersect, area_union, area_prediction,
+                area_ground_truth).
+        """
+        # In order to compat with batch inference
+        if not isinstance(indices, list):
+            indices = [indices]
+        if not isinstance(preds, list):
+            preds = [preds]
+
+        pre_eval_results = []
+        pre_eval_preds = []
+
+        for i, (pred, index) in enumerate(zip(preds, indices)):
+            depth_map = self.img_infos[index]['ann']['depth_map']
+
+            depth_map_gt = np.asarray(Image.open(depth_map), dtype=np.float32) / self.depth_scale
+            depth_map_gt = np.expand_dims(depth_map_gt, axis=0)
+            # depth_map_gt = self.eval_nyu_crop(depth_map_gt)
+            valid_mask = self.eval_mask(depth_map_gt)
+            
+            eval = metrics(depth_map_gt[valid_mask], pred[valid_mask], self.min_depth, self.max_depth)
+            pre_eval_results.append(eval)
+
+            # save prediction results
+            pre_eval_preds.append(pred)
+
+        return pre_eval_results, pre_eval_preds
 
     def evaluate(self, results, metric='eigen', logger=None, **kwargs):
-        pass
+        """Evaluate the dataset.
+        Args:
+            results (list[tuple[torch.Tensor]] | list[str]): per image pre_eval
+                 results or predict depth map for computing evaluation
+                 metric.
+            logger (logging.Logger | None | str): Logger used for printing
+                related information during evaluation. Default: None.
+        Returns:
+            dict[str, float]: Default metrics.
+        """
+        metric = ["a1", "a2", "a3", "abs_rel", "rmse", "log_10", "rmse_log", "silog", "sq_rel"]
+        eval_results = {}
+        # test a list of files
+        if mmcv.is_list_of(results, np.ndarray) or mmcv.is_list_of(
+                results, str):
+            gt_depth_maps = self.get_gt_depth_maps()
+            ret_metrics = eval_metrics(
+                gt_depth_maps,
+                results)
+        # test a list of pre_eval_results
+        else:
+            ret_metrics = pre_eval_to_metrics(results)
+        
+        ret_metric_names = []
+        ret_metric_values = []
+        for ret_metric, ret_metric_value in ret_metrics.items():
+            ret_metric_names.append(ret_metric)
+            ret_metric_values.append(ret_metric_value)
+
+        num_table = len(ret_metrics) // 9
+        for i in range(num_table):
+            names = ret_metric_names[i*9: i*9 + 9]
+            values = ret_metric_values[i*9: i*9 + 9]
+
+            # summary table
+            ret_metrics_summary = OrderedDict({
+                ret_metric: np.round(np.nanmean(ret_metric_value), 4)
+                for ret_metric, ret_metric_value in zip(names, values)
+            })
+
+            # for logger
+            summary_table_data = PrettyTable()
+            for key, val in ret_metrics_summary.items():
+                summary_table_data.add_column(key, [val])
+
+            print_log('Summary:', logger)
+            print_log('\n' + summary_table_data.get_string(), logger=logger)
+
+        # each metric dict
+        for key, value in ret_metrics.items():
+            eval_results[key] = value
+
+        return eval_results

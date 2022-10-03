@@ -1,5 +1,5 @@
 train=dict(
-    type='CustomDataset',
+    type='CustomDepthDataset',
     pipeline=[  dict(type='LoadImageFromFile')],
     data_root='data/custom_dataset',
     test_mode=False,

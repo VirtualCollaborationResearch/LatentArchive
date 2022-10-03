@@ -132,8 +132,8 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-.jpeg
-.exr
-.png
-.jpg
-.DS_Store
+*.jpeg
+*.exr
+*.png
+*.jpg
+*.DS_Store
