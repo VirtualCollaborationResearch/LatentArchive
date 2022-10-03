@@ -136,3 +136,4 @@ dmypy.json
 .exr
 .png
 .jpg
+.DS_Store
