@@ -125,5 +125,14 @@ venv.bak/
 .dmypy.json
 dmypy.json
 
+/Sample_Depth
+/Sample_RGB
+
+
 # Pyre type checker
 .pyre/
+
+.jpeg
+.exr
+.png
+.jpg
